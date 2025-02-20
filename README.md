@@ -1,2 +1,2 @@
-# IoT_PBL
-Development of Internet of Things, detection of CO2 and humidity.
+## Rules
+In your directory add a README file where you will explain how to set up your project. This is needed for others to be able to help you.
