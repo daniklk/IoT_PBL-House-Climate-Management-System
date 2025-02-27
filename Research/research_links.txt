@@ -1,3 +1,5 @@
+Switch:
+InfraRed DataBase - https://github.com/probonopd/irdb/blob/master/LICENSE.md
 
 UI
 https://www.youtube.com/watch?v=NMb4RDpbRXs
