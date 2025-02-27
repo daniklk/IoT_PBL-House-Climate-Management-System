@@ -1,5 +1,5 @@
 #include <Arduino.h>
-
+#include <IRremote.hpp>
 // put function declarations here:
 int myFunction(int, int);
 
