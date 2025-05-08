@@ -5,3 +5,6 @@ UI
 https://www.youtube.com/watch?v=NMb4RDpbRXs
 https://www.mobiloud.com/blog/flutter-vs-expo
 
+Backend
+MQTT- https://www.youtube.com/watch?v=NXyf7tVsi10&pp=ygUEbXF0dA%3D%3D 
+hiveMQ - https://www.youtube.com/watch?v=y6PFe3YDr2g
