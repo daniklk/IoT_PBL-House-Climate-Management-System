@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Companies List</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-tr from-sky-900 via-indigo-900 to-purple-900 text-slate-100 p-4">
+
+  <main class="max-w-3xl mx-auto bg-slate-800 bg-opacity-80 rounded-2xl p-6 md:p-10 shadow-xl">
+    <h1 class="text-4xl font-extrabold text-sky-400 mb-6">Companies</h1>
+
+    <a href="/" class="inline-block mb-6 text-teal-400 hover:text-teal-300 font-semibold transition">
+      ← Back to Dashboard
+    </a>
+
+    <div class="mb-8">
+      <input
+        type="text"
+        id="searchInput"
+        placeholder="Search companies"
+        class="w-full rounded-xl border border-slate-600 bg-slate-700 px-4 py-3 text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:border-transparent transition"
+        autocomplete="off"
+      />
+    </div>
+
+    <ul id="companyList" class="space-y-3 text-lg max-h-[60vh] overflow-auto">
+      {% for company in companies %}
+        <li>
+          <a href="{{ url_for('company_page', company_name=company) }}"
+             class="block rounded-lg bg-slate-700 px-5 py-3 hover:bg-sky-600 transition text-sky-300 hover:text-white">
+            {{ company }}
+          </a>
+        </li>
+      {% else %}
+        <li class="text-slate-400 italic">No companies found.</li>
+      {% endfor %}
+    </ul>
+  </main>
+
+  <script>
+  (() => {
+    const searchInput = document.getElementById('searchInput');
+    const companyList = document.getElementById('companyList');
+
+    const companies = [
+      {% for company in companies %}
+        {{ company|tojson }},
+      {% endfor %}
+    ];
+
+    function renderList(filteredCompanies) {
+      if (filteredCompanies.length === 0) {
+        companyList.innerHTML = '<li class="text-slate-400 italic">No companies found.</li>';
+        return;
+      }
+
+      companyList.innerHTML = filteredCompanies.map(company => `
+        <li>
+          <a href="/company/${encodeURIComponent(company)}"
+             class="block rounded-lg bg-slate-700 px-5 py-3 hover:bg-sky-600 transition text-sky-300 hover:text-white">
+            ${company}
+          </a>
+        </li>
+      `).join('');
+    }
+
+    searchInput.addEventListener('input', () => {
+      const query = searchInput.value.trim().toLowerCase();
+      if (!query) {
+        renderList(companies);
+        return;
+      }
+      const filtered = companies.filter(c => c.toLowerCase().includes(query));
+      renderList(filtered);
+    });
+
+    renderList(companies);
+  })();
+</script>
+
+
+</body>
+</html>
