@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ESP32 Sensor Dashboard</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    /* Для плавного скролла при мобильных устройствах */
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
+</head>
+<body class="min-h-screen bg-gradient-to-tr from-sky-900 via-indigo-900 to-purple-900 text-slate-100">
+
+  <nav class="flex flex-col md:flex-row justify-between items-center max-w-4xl mx-auto p-4 md:p-6 bg-slate-800 bg-opacity-70 rounded-2xl shadow-lg mb-6">
+    <h1 class="text-3xl font-extrabold text-sky-400 mb-2 md:mb-0">ESP32 Sensor Dashboard</h1>
+    <a href="/companies" class="text-teal-400 font-semibold hover:underline hover:text-teal-300 transition">Companies List</a>
+  </nav>
+
+  <main class="max-w-4xl mx-auto bg-slate-800 bg-opacity-80 rounded-2xl p-6 md:p-10 shadow-xl">
+    <h2 class="text-2xl md:text-3xl font-bold text-center text-sky-400 mb-10">Visualizing Temperature &amp; Humidity - Last 24 Hours</h2>
+
+    <div class="flex flex-col sm:flex-row sm:space-x-6 gap-6 mb-10">
+      <div class="flex-1 bg-slate-700 rounded-2xl p-6 shadow-md min-w-[220px]">
+        <h3 class="text-xl font-semibold text-sky-300 mb-3">Current Temperature</h3>
+        <p id="current-temp" class="text-5xl font-extrabold mb-1">- °C</p>
+        <p class="text-sm text-slate-400">Last updated: <span id="last-updated-temp">N/A</span></p>
+      </div>
+      <div class="flex-1 bg-slate-700 rounded-2xl p-6 shadow-md min-w-[220px]">
+        <h3 class="text-xl font-semibold text-sky-300 mb-3">Current Humidity</h3>
+        <p id="current-humidity" class="text-5xl font-extrabold mb-1">- %</p>
+        <p class="text-sm text-slate-400">Last updated: <span id="last-updated-humidity">N/A</span></p>
+      </div>
+    </div>
+
+    <section id="chart-container" class="bg-slate-700 rounded-2xl p-5 shadow-md" style="height: 400px;">
+      <h3 class="text-lg font-semibold text-sky-300 mb-4 text-center">Sensor Data Over Time</h3>
+      <canvas id="sensorChart" class="w-full h-[320px] md:h-[360px]"></canvas>
+    </section>
+
+    <div id="status-message" class="mt-6 px-4 py-3 rounded-lg text-center text-sm hidden"></div>
+  </main>
+
+  <script>
+    let sensorChartInstance = null;
+
+    async function fetchDataAndRenderChart() {
+      const statusMessageEl = document.getElementById('status-message');
+      try {
+        const response = await fetch('/api/readings');
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        const sensorData = await response.json();
+
+        if (!sensorData || sensorData.length === 0) {
+          statusMessageEl.textContent = 'No data received from the sensor.';
+          statusMessageEl.className = 'mt-6 px-4 py-3 rounded-lg text-center text-sm bg-yellow-400 text-yellow-900 block';
+          return;
+        }
+
+        statusMessageEl.className = 'hidden';
+        statusMessageEl.textContent = '';
+
+        const labels = sensorData.map(row => row[2]);
+        const tempData = sensorData.map(row => row[0]);
+        const humData = sensorData.map(row => row[1]);
+
+        const latestReading = sensorData[sensorData.length - 1];
+        if (latestReading) {
+          document.getElementById('current-temp').textContent = `${latestReading[0]} °C`;
+          document.getElementById('current-humidity').textContent = `${latestReading[1]} %`;
+          const nowString = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+          document.getElementById('last-updated-temp').textContent = nowString;
+          document.getElementById('last-updated-humidity').textContent = nowString;
+        }
+
+        const ctx = document.getElementById('sensorChart').getContext('2d');
+
+        if (sensorChartInstance) {
+          sensorChartInstance.destroy();
+        }
+
+        sensorChartInstance = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Temperature (°C)',
+                data: tempData,
+                borderColor: '#3b82f6',
+                backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#3b82f6',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#3b82f6',
+              },
+              {
+                label: 'Humidity (%)',
+                data: humData,
+                borderColor: '#10b981',
+                backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                tension: 0.3,
+                fill: true,
+                pointBackgroundColor: '#10b981',
+                pointBorderColor: '#fff',
+                pointHoverBackgroundColor: '#fff',
+                pointHoverBorderColor: '#10b981',
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: false,
+                grid: {
+                  color: 'rgba(203, 213, 225, 0.2)',
+                },
+                ticks: {
+                  color: 'rgb(203, 213, 225)',
+                },
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+                ticks: {
+                  color: 'rgb(203, 213, 225)',
+                  maxRotation: 0,
+                  autoSkip: true,
+                  maxTicksLimit: 12,
+                },
+              },
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                labels: {
+                  color: 'rgb(226, 232, 240)',
+                  font: {
+                    size: 14,
+                  },
+                },
+              },
+              tooltip: {
+                enabled: true,
+                mode: 'index',
+                intersect: false,
+                backgroundColor: 'rgba(15, 23, 42, 0.85)',
+                titleColor: 'rgb(226, 232, 240)',
+                bodyColor: 'rgb(203, 213, 225)',
+                titleFont: { size: 14, weight: 'bold' },
+                bodyFont: { size: 12 },
+                padding: 12,
+                cornerRadius: 8,
+                displayColors: true,
+                borderColor: 'rgba(51, 65, 85, 0.5)',
+                borderWidth: 1,
+              },
+            },
+            interaction: {
+              mode: 'nearest',
+              axis: 'x',
+              intersect: false,
+            },
+          },
+        });
+      } catch (error) {
+        console.error('Failed to fetch or render chart:', error);
+        statusMessageEl.textContent = `Error: ${error.message}. Please check the console.`;
+        statusMessageEl.className = 'mt-6 px-4 py-3 rounded-lg text-center text-sm bg-red-600 text-white block';
+      }
+    }
+
+    fetchDataAndRenderChart();
+    setInterval(fetchDataAndRenderChart, 300000); // обновлять каждые 5 минут
+  </script>
+</body>
+</html>

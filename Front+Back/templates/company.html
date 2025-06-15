@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Company: {{ company }}</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-slate-200 font-sans">
+
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6 text-sky-400">Company: {{ company }}</h1>
+
+    <a href="{{ url_for('companies_list') }}"
+       class="inline-block mb-8 text-sky-300 hover:text-sky-500 transition flex items-center gap-1">
+      ← Back to Companies
+    </a>
+
+    <ul class="space-y-3">
+      {% for device in devices %}
+        <li>
+          <a href="{{ url_for('device_page', company=company, device_path=device) }}"
+             class="block rounded-lg bg-slate-700 px-6 py-3 hover:bg-sky-600 transition text-sky-300 hover:text-white truncate">
+            {{ device }}
+          </a>
+        </li>
+      {% else %}
+        <li class="italic text-slate-400">No devices found.</li>
+      {% endfor %}
+    </ul>
+  </div>
+
+</body>
+</html>
