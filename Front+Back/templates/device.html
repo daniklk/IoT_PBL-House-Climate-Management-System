@@ -5,28 +5,41 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Device: {{ device }}</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    async function sendIR(functionName) {
+      await fetch('/api/send-ir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          protocol: "{{ protocol }}",
+          device: "{{ device_id }}",
+          subdevice: "{{ subdevice_id }}",
+          function: functionName
+        })
+      });
+    }
+  </script>
 </head>
 <body class="min-h-screen bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-slate-200 font-sans">
 
-  <div class="max-w-3xl mx-auto px-4 py-8">
-    <h1 class="text-3xl font-bold mb-6 text-sky-400 truncate">Device: {{ device }}</h1>
+  <div class="max-w-4xl mx-auto px-4 py-8">
+    <h1 class="text-3xl font-bold mb-6 text-sky-400">Device: {{ device }}</h1>
 
     <a href="{{ url_for('company_page', company_name=company) }}"
        class="inline-block mb-8 text-sky-300 hover:text-sky-500 transition flex items-center gap-1">
       ← Back to Company
     </a>
 
-    <h2 class="text-xl font-semibold mb-4 text-slate-300">Buttons:</h2>
-
-    <ul class="space-y-3">
+    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
       {% for button in buttons %}
-        <li class="bg-slate-700 rounded-lg px-5 py-3 hover:bg-sky-600 transition cursor-default">
+        <button onclick="sendIR('{{ button }}')"
+                class="w-full text-left bg-slate-700 rounded-xl px-4 py-3 hover:bg-sky-600 hover:text-white transition text-sky-300 truncate">
           {{ button }}
-        </li>
+        </button>
       {% else %}
-        <li class="italic text-slate-400">No buttons found.</li>
+        <p class="text-slate-400 italic">No IR commands found for this device.</p>
       {% endfor %}
-    </ul>
+    </div>
   </div>
 
 </body>
